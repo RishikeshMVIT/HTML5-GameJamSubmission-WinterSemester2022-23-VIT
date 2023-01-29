@@ -59,11 +59,6 @@ function Kill_init(scene){
     scene.init_platform.destroy();
 }
 
-function Kill(object, platform, scene){
-    if (object != this.kill_platform) { object.destroy();}
-    else { platform.destroy(); }
-}
-
 function AddScore(player, coin, scene){
     coin.disableBody(true, true);
     this.coin_pickup.play();
@@ -98,6 +93,12 @@ gameScene.preload = function(){
 
 gameScene.create = function(){
 
+    this.fallGravity = 128;
+    this.jumpGravity = 108;
+
+    this.jumpVelocity = 300;
+
+    //#region
     this.score = 0;
     this.scoreText = this.add.text(0, 0, ['Score: ' + this.score], { fontFamily: 'CustomFont' ,fontSize: '20px'});
 
@@ -119,13 +120,15 @@ gameScene.create = function(){
     this.kill_platform = this.physics.add.staticImage(540, 704, 'platform_large');
     this.kill_platform.setScale(10, 1); 
 
-    var timer = this.time.addEvent({
+    this.time.addEvent({
         delay: 1000,
         callback: CreateItems,
         args: [this],
         callbackScope: globalThis,
         loop: true
     });
+
+    //#endregion
 
     //#region Colliders
     this.physics.add.collider(this.player, this.platforms, null, null, this);
@@ -134,11 +137,8 @@ gameScene.create = function(){
 
     //#region Overlaps
     this.physics.add.overlap(this.player, this.coins, AddScore, null, this);
-    this.physics.add.overlap(this.coins, this.kill_platform, Kill, null, this);
-    this.physics.add.overlap(this.platforms, this.kill_platform, Kill, null, this);
     this.physics.add.overlap(this.player, this.kill_platform, GameOver, null, this);
     //#endregion
-
 
 };
 
@@ -148,44 +148,43 @@ gameScene.update = function(){
 
     //#region Horizontal Movement
     
-    if (cursors.left.isDown) { this.player.setVelocityX(-160); }
-    else if (cursors.right.isDown){ this.player.setVelocityX(160); }
+    if (cursors.left.isDown) { this.player.setVelocityX(-180); }
+    else if (cursors.right.isDown){ this.player.setVelocityX(180); }
     else {this.player.setVelocityX(0); }
 
     //#endregion
 
     //#region Jumping
+    
+    if (this.player.body.onFloor()){
+        this.player.onGround = true;
+    }
 
-    //Checking if player is falling
     if (this.player.body.velocity.y > 0){
-        this.player.isFalling = true;
-        this.player.setGravityY(80);
+        this.player.setGravityY(this.jumpGravity);
         if (this.player.onGround){ 
             this.player.onGround = false;
             this.player.fallTime = this.time.now;
         }
     }
 
-    if (cursors.space.isDown || cursors.space.isDown)
+    if (cursors.space.isDown || cursors.up.isDown)
     {
         this.player.jumpTime = this.time.now;
         let coyoteTime = this.player.jumpTime - this.player.fallTime
 
         if (this.player.body.onFloor()){
-            this.player.setVelocityY(-250);
-            this.player.setGravityY(100);
-            this.player.onGround = false;
-        }
-        else if (!this.player.body.onFloor() && coyoteTime < 500){
-            this.player.setVelocityY(-250);
-            this.player.setGravityY(100);
+            this.player.setVelocityY(-this.jumpVelocity);
+            this.player.setGravityY(this.fallGravity);
             this.player.onGround = false;
         }
 
-    }
+        if (!this.player.body.onFloor() && coyoteTime < 500){
+            this.player.setVelocityY(-this.jumpVelocity);
+            this.player.setGravityY(this.fallGravity);
+            this.player.onGround = false;
+        }
 
-    if (this.player.body.onFloor()){
-        this.player.onGround = true;
     }
 
     //#endregion
