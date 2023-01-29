@@ -1,0 +1,26 @@
+
+@font-face {
+    font-family: CustomFont;
+    src: url('/assets/Customfont.TTF');
+}
+
+:root{
+    font-family: 'Customfont';
+}
+
+body
+{
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+#Game_Window
+{
+    width: 100%;
+    height: 80%;
+    background-color: black;
+}
+
